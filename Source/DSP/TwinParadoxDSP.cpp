@@ -8,20 +8,21 @@ void TwinParadoxDSP::prepare(double sampleRate, int /*samplesPerBlock*/)
 {
     sr = sampleRate;
 
-    // Stage 1: fast comp — responds to transients immediately
-    attCoeffA = static_cast<float>(std::exp(-1.0 / (0.005 * sr))); //   5ms attack
-    relCoeffA = static_cast<float>(std::exp(-1.0 / (0.050 * sr))); //  50ms release
+    attCoeffA = static_cast<float>(std::exp(-1.0 / (0.005 * sr)));
+    relCoeffA = static_cast<float>(std::exp(-1.0 / (0.050 * sr)));
+    attCoeffB = static_cast<float>(std::exp(-1.0 / (0.050 * sr)));
+    relCoeffB = static_cast<float>(std::exp(-1.0 / (0.500 * sr)));
 
-    // Stage 2: slow comp — lags behind, creating time-offset chaos
-    attCoeffB = static_cast<float>(std::exp(-1.0 / (0.050 * sr))); //  50ms attack
-    relCoeffB = static_cast<float>(std::exp(-1.0 / (0.500 * sr))); // 500ms release
-
+    outComp.prepare(sampleRate);
     reset();
 }
 
 void TwinParadoxDSP::reset()
 {
     envA = envB = f1State = f2State = feedback = 0.0f;
+    adaaSat.reset();
+    adaaFold.reset();
+    outComp.reset();
 }
 
 float TwinParadoxDSP::updateEnvA(float x) noexcept
@@ -56,27 +57,26 @@ float TwinParadoxDSP::compGainB(float env) noexcept
     return 1.0f;
 }
 
-// Stage 1: asymmetric tanh — odd harmonics + subtle 2nd harmonic via half-wave asymmetry
+// Stage 1: asymmetric tanh — ADAA 1st-order piecewise
+// x≥0: tanh(ap·x)/tanh(ap)   x<0: tanh(an·x)/tanh(an)
+// 非対称係数 ap=d·1.3 / an=d·0.8 で奇数倍音 + 2次倍音を生成
 float TwinParadoxDSP::saturate(float x, float drive) noexcept
 {
-    const float d = std::max(drive, 0.01f);
-    if (x >= 0.0f)
-        return std::tanh(d * 1.3f * x) / std::tanh(d * 1.3f);
-    else
-        return std::tanh(d * 0.8f * x) / std::tanh(d * 0.8f);
+    const float d  = std::max(drive, 0.01f);
+    const float ap = d * 1.3f;
+    const float an = d * 0.8f;
+    return adaaSat.process(x, ap, an);
 }
 
-// Stage 2: sine wavefolder — folds back signal above threshold, generating
-// complex harmonics that change character entirely as drive increases.
-// Completely different from tanh: at low drive sounds almost clean,
-// at high drive creates metallic, inharmonic chaos.
+// Stage 2: sine wavefolder — ADAA 1st-order
+// f(x) = sin(a·x) / norm,  a = d·π/2,  norm = sin(d·π/2)
+// F(x) = -cos(a·x) / (a·norm)
 float TwinParadoxDSP::wavefold(float x, float drive) noexcept
 {
-    const float d = std::max(drive, 0.01f);
-    // Scale input by drive, then fold with sine
-    const float driven = x * d;
-    // Sine fold: wraps the waveform back on itself
-    return std::sin(driven * kPi * 0.5f) / std::max(std::sin(d * kPi * 0.5f), 0.001f);
+    const float d    = std::max(drive, 0.01f);
+    const float a    = d * kPi * 0.5f;
+    const float norm = std::max(std::sin(d * kPi * 0.5f), 0.001f);
+    return adaaFold.process(x, a, norm);
 }
 
 float TwinParadoxDSP::lpFilter(float x, float& state, float coeff) noexcept
@@ -122,5 +122,8 @@ float TwinParadoxDSP::processSample(float input)
 
     // Parallel sum: Stage 1 (tanh body) + Stage 2 (wavefold chaos)
     const float wet = (stage1Out + stage2Out) * 0.5f;
-    return dry * (1.0f - mix) + wet * mix;
+    const float out = dry * (1.0f - mix) + wet * mix;
+
+    // 出力コンプレッサー: Drive 2 特異点付近の急激な音量変化を平準化
+    return outComp.process(out);
 }

@@ -49,11 +49,15 @@ void TwinParadoxProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
 {
     juce::ScopedNoDenormals noDenormals;
 
-    // Map normalized drive [0,1] to useful gain range [0.5, 8.0]
-    auto mapDrive = [](float v) { return 0.5f + v * 7.5f; };
+    // Drive 1: tanh saturator  0→0.5, 1→8.0 (ワイドレンジ)
+    auto mapDrive1 = [](float v) { return 0.5f + v * 7.5f; };
 
-    const float d1  = mapDrive(apvts.getRawParameterValue("drive1")->load());
-    const float d2  = mapDrive(apvts.getRawParameterValue("drive2")->load());
+    // Drive 2: wavefold sine  0→0.5, 0.5→2.0(特異点), 1→3.5
+    // sin(d * π/2) = 0 は d=2.0 で発生する特異点 → ノブ中央で狙いやすくした
+    auto mapDrive2 = [](float v) { return 0.5f + v * 3.0f; };
+
+    const float d1  = mapDrive1(apvts.getRawParameterValue("drive1")->load());
+    const float d2  = mapDrive2(apvts.getRawParameterValue("drive2")->load());
     const float f1  = apvts.getRawParameterValue("filter1fc")->load();
     const float f2  = apvts.getRawParameterValue("filter2fc")->load();
     const float mod = apvts.getRawParameterValue("modblend")->load();
