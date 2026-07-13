@@ -2,12 +2,20 @@ cmake_minimum_required(VERSION 3.22)
 project(TwinParadoxVST VERSION 0.2.0)
 set(CMAKE_CXX_STANDARD 17)
 
-add_subdirectory("C:/JUCE" "${CMAKE_CURRENT_BINARY_DIR}/JUCE" EXCLUDE_FROM_ALL)
+# JUCE の場所（プラットフォーム別・-DJUCE_DIR で上書き可）
+if(NOT DEFINED JUCE_DIR)
+    if(APPLE)
+        set(JUCE_DIR "$ENV{HOME}/JUCE")
+    else()
+        set(JUCE_DIR "C:/JUCE")
+    endif()
+endif()
+add_subdirectory("${JUCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/JUCE" EXCLUDE_FROM_ALL)
 
 juce_add_plugin(TwinParadoxVST
     PLUGIN_MANUFACTURER_CODE Snag
     PLUGIN_CODE TwPD
-    FORMATS VST3 Standalone
+    FORMATS AU VST3 Standalone
     PRODUCT_NAME "Twin Paradox Distortion"
     COMPANY_NAME "SeiNagi"
     IS_SYNTH FALSE
