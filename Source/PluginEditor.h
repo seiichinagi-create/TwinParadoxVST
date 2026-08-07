@@ -1,6 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "vendor/SnLookAndFeel.h"
 
 class TwinParadoxEditor : public juce::AudioProcessorEditor
 {
@@ -12,6 +13,7 @@ public:
     void resized() override;
 
 private:
+    sn::KnobLookAndFeel snLaf;   // ★メンバの先頭=最後に壊れる(子より長生きさせる)
     TwinParadoxProcessor& processor;
 
     juce::Slider drive1Slider, drive2Slider;

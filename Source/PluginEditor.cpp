@@ -15,6 +15,7 @@ TwinParadoxEditor::TwinParadoxEditor(TwinParadoxProcessor& p)
       modBlendAtt(p.apvts, "modblend",  modBlendSlider),
       mixAtt     (p.apvts, "mix",       mixSlider)
 {
+    setLookAndFeel (&snLaf);      // つまみとフェーダーの共通デザイン(sn-lookandfeel)
     setupKnob(drive1Slider,   drive1Label,   "Drive 1");
     setupKnob(drive2Slider,   drive2Label,   "Drive 2");
     setupKnob(filter1Slider,  filter1Label,  "Fwd Cut");
@@ -25,7 +26,7 @@ TwinParadoxEditor::TwinParadoxEditor(TwinParadoxProcessor& p)
     setSize(500, 330);
 }
 
-TwinParadoxEditor::~TwinParadoxEditor() {}
+TwinParadoxEditor::~TwinParadoxEditor() { setLookAndFeel (nullptr);}
 
 void TwinParadoxEditor::setupKnob(juce::Slider& s, juce::Label& l, const juce::String& name)
 {
