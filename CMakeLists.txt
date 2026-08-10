@@ -23,7 +23,7 @@ juce_add_plugin(TwinParadoxVST
     NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
-    COPY_PLUGIN_AFTER_BUILD FALSE
+    COPY_PLUGIN_AFTER_BUILD TRUE
     ICON_BIG                 "${CMAKE_CURRENT_SOURCE_DIR}/Resources/icon.png"
     ICON_SMALL               "${CMAKE_CURRENT_SOURCE_DIR}/Resources/icon.png"
 )
