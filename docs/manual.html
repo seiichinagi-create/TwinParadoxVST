@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Twin Paradox Distortion</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1f2328;--dim:#5c6570;--rule:#dfe3e8;--card:#f2f4f6;
+      --accent:#2f6f8f;--code:#eceff2}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+      --bg:#15181c;--fg:#e3e8ed;--dim:#98a3ae;--rule:#2c333b;--card:#1c2127;
+      --accent:#7fc3e0;--code:#22282f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+     font-family:"Yu Gothic UI","Yu Gothic","Hiragino Sans","Meiryo",system-ui,sans-serif;
+     line-height:1.75;font-size:15px}
+main{max-width:52rem;margin:0 auto;padding:2.5rem 1.25rem 6rem}
+h1{font-size:1.9rem;line-height:1.3;margin:0 0 .25rem}
+h2{font-size:1.3rem;margin:2.6rem 0 .6rem;padding-bottom:.3rem;
+   border-bottom:1px solid var(--rule)}
+h3{font-size:1.05rem;margin:1.8rem 0 .4rem}
+h4{font-size:.95rem;margin:1.2rem 0 .3rem;color:var(--dim)}
+p{margin:.6rem 0}
+code{background:var(--code);padding:.1em .35em;border-radius:3px;
+     font-family:ui-monospace,Consolas,"Courier New",monospace;font-size:.9em}
+pre{background:var(--code);padding:.9rem 1rem;border-radius:6px;overflow-x:auto}
+pre code{background:none;padding:0}
+a{color:var(--accent)}
+hr{border:0;border-top:1px solid var(--rule);margin:2rem 0}
+ul,ol{margin:.5rem 0;padding-left:1.4rem}
+li{margin:.2rem 0}
+.scroll{overflow-x:auto;margin:.8rem 0}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{border:1px solid var(--rule);padding:.4rem .6rem;text-align:left;
+      vertical-align:top}
+th{background:var(--card);font-weight:600;white-space:nowrap}
+table.params td:first-child{white-space:nowrap}
+.sub{color:var(--dim);margin:0 0 1.5rem;font-size:.95rem}
+.sub .pdf{margin-left:.6rem;white-space:nowrap}
+@media print{.sub .pdf{display:none}}
+.note{color:var(--dim);font-size:.88rem;margin:.2rem 0 .8rem}
+.toc{background:var(--card);border:1px solid var(--rule);border-radius:8px;
+     padding:.9rem 1.2rem;margin:1.5rem 0}
+.toc div{font-weight:600;margin-bottom:.3rem}
+.toc a{display:block;padding:.12rem 0;text-decoration:none}
+.toc a.l2{padding-left:1rem;font-size:.93rem}
+.prov{margin-top:4rem;padding-top:1rem;border-top:1px solid var(--rule);
+      color:var(--dim);font-size:.82rem}
+@media print{
+  body{background:#fff;color:#000;font-size:10.5pt}
+  main{max-width:none;padding:0}
+  .toc{break-inside:avoid}
+  h2,h3{break-after:avoid}
+  tr{break-inside:avoid}
+  a{color:#000;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<main>
+<h1>Twin Paradox Distortion</h1>
+<p class="sub">2基の「コンプ + ディストーション」を入れ子にして相互変調させる超軽量ディストーション — VST3 + Standalone <a class="pdf" href="manual.pdf">印刷用の PDF</a></p>
+<nav class="toc"><div>目次</div><a class="l1" href="#twin-paradox-distortion">Twin Paradox Distortion</a><a class="l2" href="#この機械について">この機械について</a><a class="l2" href="#はじめの一手">はじめの一手</a><a class="l2" href="#params">パラメータ一覧</a><a class="l2" href="#cc">MIDI CC で動かせるもの</a><a class="l2" href="#つまみ">つまみ</a><a class="l2" href="#この説明書について">この説明書について</a></nav>
+<h1 id="twin-paradox-distortion">Twin Paradox Distortion</h1>
+<h2 id="この機械について">この機械について</h2>
+<p>「コンプ→歪み」の段を2つ作り、<strong>入れ子に配置して互いを変調させる</strong>構造です。</p>
+<pre><code>[ 入力 ]
+   ├─► Stage 1（外殻）  Comp A → Distortion A ◄────────┐
+   │        │                                          │
+   │        ▼                                          │ Filter 2（帰還）
+   │   Filter 1（順方向）                               │ Stage 2 の出力を帯域制限して
+   │        │                                          │ Stage 1 の歪みへ戻す
+   │        └──────────────┐                           │
+   │                       ▼                           │
+   └─► Stage 2（内殻）  Comp B → Distortion B ──────────┘</code></pre>
+<p><strong>2つのフィルタが「どの帯域で互いに話すか」を決めています。</strong> 同じ周波数に置くと その帯域だけが強く相互作用して、共振のように鳴きます。離すと2つの歪みが 別々に効いて、素直な多段歪みに近づきます。</p>
+<p>名前の由来は、同じところから出た2つが違う経路を通って戻ってくると ずれている、というところです。<strong>CPU 負荷は非常に低い</strong>のに、弾き方で音が有機的に変わります。</p>
+<h2 id="はじめの一手">はじめの一手</h2>
+<p><strong>2つのフィルタを同じ値から始めて、片方だけを動かす</strong>のがいちばん分かりやすいです。 <code>mod_blend</code> は最後に触ってください（先に上げると何が原因で音が変わったのか分からなくなります）。</p>
+<h2 id="params">パラメータ一覧</h2>
+<p class="note">この表は手書きではなく、出荷する VST3 を読んで作っている。プラグインに無いことはここに書けない</p>
+<div class="scroll"><table class="params"><thead><tr><th>ID</th><th>名前</th><th>範囲</th><th>既定</th></tr></thead><tbody><tr><td><code><a href="#p-drive_1">drive_1</a></code></td><td>Drive 1</td><td>0 - 1</td><td>0.50</td></tr><tr><td><code><a href="#p-drive_2">drive_2</a></code></td><td>Drive 2</td><td>0 - 1</td><td>0.50</td></tr><tr><td><code><a href="#p-filter_1_fc">filter_1_fc</a></code></td><td>Filter 1 Fc</td><td>200 - 8000</td><td>4000</td></tr><tr><td><code><a href="#p-filter_2_fc">filter_2_fc</a></code></td><td>Filter 2 Fc</td><td>200 - 8000</td><td>4000</td></tr><tr><td><code><a href="#p-mod_blend">mod_blend</a></code></td><td>Mod Blend</td><td>0 - 1</td><td>0.50</td></tr><tr><td><code><a href="#p-mix">mix</a></code></td><td>Mix</td><td>0 - 1</td><td>1.00</td></tr><tr><td><code><a href="#p-bypass">bypass</a></code></td><td>Bypass</td><td>オン / オフ</td><td>Off</td></tr></tbody></table></div>
+<h2 id="cc">MIDI CC で動かせるもの</h2>
+<p>このプラグインは MIDI を受け取らない。つまみはホストのオートメーションで動かす</p>
+<hr>
+<h2 id="つまみ">つまみ</h2>
+<h3 id="p-drive_1"><code>drive_1</code> — DRIVE 1</h3>
+<p>Stage 1（外殻）の歪み量。</p>
+<h3 id="p-drive_2"><code>drive_2</code> — DRIVE 2</h3>
+<p>Stage 2（内殻）の歪み量。</p>
+<h3 id="p-filter_1_fc"><code>filter_1_fc</code> — FILTER 1 Fc</h3>
+<p>順方向フィルタのカットオフ（200Hz〜8kHz）。<strong>Stage 1 が Stage 2 へ何を渡すか</strong>を決めます。</p>
+<h3 id="p-filter_2_fc"><code>filter_2_fc</code> — FILTER 2 Fc</h3>
+<p>帰還フィルタのカットオフ（200Hz〜8kHz）。<strong>Stage 2 が Stage 1 へ何を返すか</strong>を決めます。 <strong>2つを近づけるほど、その帯域が鳴きます。</strong></p>
+<h3 id="p-mod_blend"><code>mod_blend</code> — MOD BLEND</h3>
+<p>相互変調をどれだけ効かせるか。0 に寄せると入れ子構造がほどけ、 2つの段が独立に近い動きになります。</p>
+<h3 id="p-mix"><code>mix</code> — MIX</h3>
+<p>原音との比。既定は 1.00（全部加工音）です。</p>
+<h3 id="p-bypass"><code>bypass</code> — BYPASS</h3>
+<p>全体のバイパス。</p>
+<hr>
+<h2 id="この説明書について">この説明書について</h2>
+<p>パラメータ一覧と MIDI CC の表は手書きではなく、<strong>出荷する VST3 を読んで</strong>作っています。 書き忘れたつまみがあると、説明書のビルドが止まります。</p>
+<p class="prov">この説明書の出どころ<br><code>Twin Paradox Distortion.vst3</code> / 7 parameters, read from the artefact</p>
+</main>
+</body>
+</html>

@@ -2,6 +2,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "vendor/SnLookAndFeel.h"
+#include "vendor/SnManual.h"
 
 class TwinParadoxEditor : public juce::AudioProcessorEditor
 {
@@ -29,5 +30,6 @@ private:
 
     void setupKnob(juce::Slider& s, juce::Label& l, const juce::String& name);
 
+    sn::HelpButton snHelp;       // opens the manual embedded in this binary
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TwinParadoxEditor)
 };

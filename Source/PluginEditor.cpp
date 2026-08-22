@@ -23,6 +23,16 @@ TwinParadoxEditor::TwinParadoxEditor(TwinParadoxProcessor& p)
     setupKnob(modBlendSlider, modBlendLabel, "Mod Blend");
     setupKnob(mixSlider,      mixLabel,      "Mix");
 
+    addAndMakeVisible (snHelp);
+    snHelp.onClick = [this]
+    {
+        auto why = sn::manual::open (BinaryData::manual_html, BinaryData::manual_htmlSize,
+                                     BinaryData::manual_pdf,  BinaryData::manual_pdfSize,
+                                     "Twin Paradox Distortion");
+        if (why.isNotEmpty())
+            sn::manual::report (this, why);
+    };
+
     setSize(500, 330);
 }
 
@@ -118,4 +128,5 @@ void TwinParadoxEditor::resized()
 
     mixSlider.setBounds(268, kYBot, kW, kH);
     mixLabel .setBounds(268, kYBot + kH, kW, kLblH);
+    snHelp.setBounds (getWidth() - 30, 8, 22, 22);   // a way out belongs at the edge
 }

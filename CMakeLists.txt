@@ -30,6 +30,16 @@ juce_add_plugin(TwinParadoxVST
 
 juce_generate_juce_header(TwinParadoxVST)
 
+# The manual travels inside the binary, not beside it. docs/manual.html and
+# docs/manual.pdf come from sn-lookandfeel/tools/build_manual.py, which reads
+# the parameter table out of the BUILT plug-in - so after changing parameters,
+# build, run that script, and build again. Its --check says if that is owed.
+juce_add_binary_data(TwinParadoxVSTManual SOURCES
+    docs/manual.html
+    docs/manual.pdf
+)
+set_target_properties(TwinParadoxVSTManual PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+
 target_sources(TwinParadoxVST PRIVATE
     Source/PluginProcessor.cpp
     Source/PluginEditor.cpp
@@ -48,6 +58,7 @@ target_compile_definitions(TwinParadoxVST PUBLIC
 
 target_link_libraries(TwinParadoxVST
     PRIVATE juce::juce_audio_utils juce::juce_dsp
+    TwinParadoxVSTManual
     PUBLIC  juce::juce_recommended_config_flags
             juce::juce_recommended_warning_flags
 )
