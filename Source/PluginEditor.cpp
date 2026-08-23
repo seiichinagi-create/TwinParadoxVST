@@ -26,8 +26,8 @@ TwinParadoxEditor::TwinParadoxEditor(TwinParadoxProcessor& p)
     addAndMakeVisible (snHelp);
     snHelp.onClick = [this]
     {
-        auto why = sn::manual::open (BinaryData::manual_html, BinaryData::manual_htmlSize,
-                                     BinaryData::manual_pdf,  BinaryData::manual_pdfSize,
+        auto why = sn::manual::open (SnManualData::manual_html, SnManualData::manual_htmlSize,
+                                     SnManualData::manual_pdf,  SnManualData::manual_pdfSize,
                                      "Twin Paradox Distortion");
         if (why.isNotEmpty())
             sn::manual::report (this, why);
@@ -128,5 +128,6 @@ void TwinParadoxEditor::resized()
 
     mixSlider.setBounds(268, kYBot, kW, kH);
     mixLabel .setBounds(268, kYBot + kH, kW, kLblH);
+    snHelp.toFront (false);   // a later addAndMakeVisible would cover it
     snHelp.setBounds (getWidth() - 30, 8, 22, 22);   // a way out belongs at the edge
 }

@@ -34,7 +34,8 @@ juce_generate_juce_header(TwinParadoxVST)
 # docs/manual.pdf come from sn-lookandfeel/tools/build_manual.py, which reads
 # the parameter table out of the BUILT plug-in - so after changing parameters,
 # build, run that script, and build again. Its --check says if that is owed.
-juce_add_binary_data(TwinParadoxVSTManual SOURCES
+juce_add_binary_data(TwinParadoxVSTManual NAMESPACE SnManualData
+                             HEADER_NAME SnManualData.h SOURCES
     docs/manual.html
     docs/manual.pdf
 )

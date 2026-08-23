@@ -2,6 +2,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "vendor/SnLookAndFeel.h"
+#include "SnManualData.h"
 #include "vendor/SnManual.h"
 
 class TwinParadoxEditor : public juce::AudioProcessorEditor
